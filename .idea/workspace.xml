@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6c8997af-d224-4c44-b0c2-7d09d38e5d74" name="Changes" comment="initial commit">
-      <change afterPath="$PROJECT_DIR$/network.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tensor_test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+    <list default="true" id="6c8997af-d224-4c44-b0c2-7d09d38e5d74" name="Changes" comment="training a model to identify spiral and elliptical galaxies">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmark.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network.py" beforeDir="false" afterPath="$PROJECT_DIR$/network.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/uv.lock" beforeDir="false" afterPath="$PROJECT_DIR$/uv.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,6 +54,7 @@
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.benchmark.executor": "Run",
     "Python.main.executor": "Run",
     "Python.network.executor": "Run",
     "Python.tensor_test.executor": "Run",
@@ -63,7 +65,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "benchmark-cpu-vs-gpu",
     "junie.onboarding.icon.badge.shown": "true",
     "to.speed.mode.migration.done": "true"
   }
@@ -91,12 +93,21 @@
       <option name="project" value="LOCAL" />
       <updated>1772349064336</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="training a model to identify spiral and elliptical galaxies">
+      <option name="closed" value="true" />
+      <created>1772351721954</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1772351721954</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+    <MESSAGE value="training a model to identify spiral and elliptical galaxies" />
+    <option name="LAST_COMMIT_MESSAGE" value="training a model to identify spiral and elliptical galaxies" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

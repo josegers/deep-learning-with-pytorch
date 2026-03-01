@@ -4,30 +4,42 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from network import GalaxyClassifier
+from network import GalaxyClassifier, LargeGalaxyClassifier
 
-# --- Config ---
-N_SAMPLES = 10_000   # galaxies per class
-EPOCHS = 500
 LR = 0.01
 
+CONFIGS = [
+    {
+        "label": "Small network  (3 -> 8 -> 2)",
+        "model_cls": GalaxyClassifier,
+        "n_samples": 10_000,
+        "epochs": 500,
+    },
+    {
+        "label": "Large network  (3 -> 128 -> 512 -> 1024 -> 512 -> 128 -> 2)",
+        "model_cls": LargeGalaxyClassifier,
+        "n_samples": 50_000,
+        "epochs": 200,
+    },
+]
 
-def make_dataset(device: torch.device):
-    spirals_X = torch.randn(N_SAMPLES, 3) + torch.tensor([2.0, 2.0, 0.0])
-    spirals_y = torch.zeros(N_SAMPLES, dtype=torch.long)
 
-    ellipticals_X = torch.randn(N_SAMPLES, 3) - torch.tensor([2.0, 2.0, 0.0])
-    ellipticals_y = torch.ones(N_SAMPLES, dtype=torch.long)
+def make_dataset(n_samples: int, device: torch.device):
+    spirals_X = torch.randn(n_samples, 3) + torch.tensor([2.0, 2.0, 0.0])
+    spirals_y = torch.zeros(n_samples, dtype=torch.long)
+
+    ellipticals_X = torch.randn(n_samples, 3) - torch.tensor([2.0, 2.0, 0.0])
+    ellipticals_y = torch.ones(n_samples, dtype=torch.long)
 
     X = torch.cat((spirals_X, ellipticals_X), dim=0).to(device)
     y = torch.cat((spirals_y, ellipticals_y), dim=0).to(device)
     return X, y
 
 
-def train(device: torch.device) -> dict:
-    X, y = make_dataset(device)
+def train(model_cls, n_samples: int, epochs: int, device: torch.device) -> dict:
+    X, y = make_dataset(n_samples, device)
 
-    model = GalaxyClassifier().to(device)
+    model = model_cls().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LR)
 
@@ -39,10 +51,9 @@ def train(device: torch.device) -> dict:
 
     start = time.perf_counter()
 
-    for epoch in range(EPOCHS):
+    for _ in range(epochs):
         optimizer.zero_grad()
-        outputs = model(X)
-        loss = criterion(outputs, y)
+        loss = criterion(model(X), y)
         loss.backward()
         optimizer.step()
 
@@ -51,7 +62,6 @@ def train(device: torch.device) -> dict:
 
     elapsed = time.perf_counter() - start
 
-    # Accuracy on the training set
     with torch.no_grad():
         preds = torch.argmax(model(X), dim=1)
         accuracy = (preds == y).float().mean().item()
@@ -64,14 +74,19 @@ def train(device: torch.device) -> dict:
     }
 
 
-def print_results(results: list[dict]) -> None:
+def print_section(label: str, n_samples: int, epochs: int, results: list[dict]) -> None:
+    print(f"\n{'=' * 60}")
+    print(f"  {label}")
+    print(f"  {n_samples * 2:,} samples  |  {epochs} epochs")
+    print(f"{'=' * 60}")
+
     col = 14
-    header = f"{'Device':<{col}} {'Time (s)':>10} {'Loss':>10} {'Accuracy':>10}"
+    header = f"  {'Device':<{col}} {'Time (s)':>10} {'Loss':>10} {'Accuracy':>10}"
     print(header)
-    print("-" * len(header))
+    print("  " + "-" * (len(header) - 2))
     for r in results:
         print(
-            f"{r['device']:<{col}} "
+            f"  {r['device']:<{col}} "
             f"{r['elapsed_s']:>10.3f} "
             f"{r['final_loss']:>10.4f} "
             f"{r['accuracy']:>9.1%}"
@@ -82,28 +97,27 @@ def print_results(results: list[dict]) -> None:
         speedup = a["elapsed_s"] / b["elapsed_s"]
         faster = b["device"] if speedup > 1 else a["device"]
         ratio = max(speedup, 1 / speedup)
-        print(f"\n{faster} is {ratio:.2f}x faster")
+        print(f"\n  >> {faster} is {ratio:.2f}x faster")
 
 
 def main():
-    print(f"Benchmark — {N_SAMPLES * 2:,} samples, {EPOCHS} epochs\n")
-
-    devices_to_test: list[torch.device] = [torch.device("cpu")]
+    devices: list[torch.device] = [torch.device("cpu")]
 
     if torch.cuda.is_available():
-        devices_to_test.append(torch.device("cuda"))
+        devices.append(torch.device("cuda"))
     elif torch.backends.mps.is_available():
-        devices_to_test.append(torch.device("mps"))
+        devices.append(torch.device("mps"))
     else:
-        print("No GPU detected — running CPU only.\n")
+        print("No GPU detected — running CPU only.")
 
-    results = []
-    for device in devices_to_test:
-        print(f"Running on {device}...", flush=True)
-        results.append(train(device))
-
-    print()
-    print_results(results)
+    for cfg in CONFIGS:
+        results = []
+        for device in devices:
+            print(f"Running {cfg['label']} on {device}...", flush=True)
+            results.append(
+                train(cfg["model_cls"], cfg["n_samples"], cfg["epochs"], device)
+            )
+        print_section(cfg["label"], cfg["n_samples"], cfg["epochs"], results)
 
 
 if __name__ == "__main__":
