@@ -5,6 +5,8 @@ import torch.nn.functional as F
 
 from network import GalaxyClassifier
 
+cuda_device = torch.device("cuda")
+
 def main():
     print("--- 1. PREPARING DATA ---")
     # Let's create 100 Spiral Galaxies (Label 0) and 100 Elliptical Galaxies (Label 1)
@@ -18,13 +20,13 @@ def main():
     ellipticals_y = torch.ones(100, dtype=torch.long)  # Label 1 = elliptical
 
     # Combine them
-    X = torch.cat((spirals_X, ellipticals_x), dim=0)
-    y = torch.cat((spirals_y, ellipticals_y), dim=0)
+    X = torch.cat((spirals_X, ellipticals_x), dim=0).to(cuda_device)
+    y = torch.cat((spirals_y, ellipticals_y), dim=0).to(cuda_device)
 
     print(f"Dataset ready: {X.shape[0]} galaxies.")
 
     print("\n--- 2. INITIALIZING MODEL ---")
-    model = GalaxyClassifier()
+    model = GalaxyClassifier().to(cuda_device)
 
     # The Loss Function (How wrong are we?)
     criterion = nn.CrossEntropyLoss()
@@ -59,8 +61,8 @@ def main():
     print("\n--- 4. TRAINING COMPLETE ---")
 
     # Let's test it on a brand new "Spiral" galaxy
-    new_galaxy = torch.tensor([[2.5, 2.1, 0.5]])
-    raw_prediction = model(new_galaxy)
+    new_galaxy = torch.tensor([[2.5, 2.1, 0.5]]).to(cuda_device)
+    raw_prediction = model(new_galaxy).to(cuda_device)
     print(f"\nRaw prediction: {raw_prediction}")
 
     # Convert logits to probabilities
