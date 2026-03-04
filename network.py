@@ -25,6 +25,28 @@ class GalaxyClassifier(nn.Module):
 
         return x
 
+class LargeGalaxyClassifier(nn.Module):
+    """Deeper, wider network to stress the GPU and show meaningful speedup."""
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(3, 128),
+            nn.ReLU(),
+            nn.Linear(128, 512),
+            nn.ReLU(),
+            nn.Linear(512, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Linear(512, 128),
+            nn.ReLU(),
+            nn.Linear(128, 2),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+
 def main():
     model = GalaxyClassifier()
 
