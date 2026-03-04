@@ -5,6 +5,8 @@ import torch.nn.functional as F
 # 1. Import the architecture
 from cnn_network import GalaxyCNN
 
+cuda_device = torch.device("cuda")
+
 def predict_galaxy(model: nn.Module, image_tensor: torch.Tensor) -> tuple[str, float]:
     """
     Simulates a production API endpoint.
@@ -14,6 +16,9 @@ def predict_galaxy(model: nn.Module, image_tensor: torch.Tensor) -> tuple[str, f
 
     # Golden Rule 1: Set to evaluation mode
     model.eval()
+
+    # Move image to the same device as the model
+    image_tensor = image_tensor.to(cuda_device)
 
     # Golden Rule 2: Turn off the gradient engine
     with torch.no_grad():
@@ -37,13 +42,14 @@ def main():
 
     # 2. INITIALIZE THE EMPTY SHELL
     # C# Analogy: var myBrain = new GalaxyCNN();
-    model = GalaxyCNN()
+    model = GalaxyCNN().to(cuda_device)
 
     # 3. LOAD THE BRAIN
     # C# Analogy: myBrain.LoadState(File.ReadAllBytes("galaxy_cnn.pt"));
     try:
         # weights_only=True is a security best practice when loading pickled data
-        model.load_state_dict(torch.load("galaxy_cnn.pt", weights_only=True))
+        # We also use map_location to ensure weights are loaded directly to the correct device
+        model.load_state_dict(torch.load("galaxy_cnn.pt", weights_only=True, map_location=cuda_device))
         print("Model weights loaded successfully. Ready for requests.")
     except FileNotFoundError:
         print("CRITICAL: 'galaxy_cnn.pt' not found. Run the training script first.")
