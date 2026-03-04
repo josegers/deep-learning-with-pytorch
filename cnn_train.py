@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from network import GalaxyClassifier
+from cnn_network import GalaxyCNN
 
 cuda_device = torch.device("cuda")
 
@@ -12,21 +12,31 @@ def main():
     # Let's create 100 Spiral Galaxies (Label 0) and 100 Elliptical Galaxies (Label 1)
 
     # Spirals: Let's say they have higher values for feature 1 and 2
-    spirals_X = torch.randn(100, 3) + torch.tensor([2.0, 2.0, 0.0])
+    #dummy_image = torch.randn(1, 1, 32, 32)
+
+    spirals_X = torch.randn(100, 1, 32, 32)
+    # 1. Draw a "Spiral" feature: A bright diagonal line
+    # We iterate through the 32x32 grid and brighten the x=y coordinates
+    for i in range(32):
+        spirals_X[:, 0, i, i] += 2.0
     spirals_y = torch.zeros(100, dtype=torch.long) # label 0 = spiral
 
     # Ellipticals: Let's say they have lower values
-    ellipticals_x = torch.randn(100, 3) - torch.tensor([2.0, 2.0, 0.0])
+    ellipticals_X = torch.randn(100, 1, 32, 32)
+    # 2. Draw an "Elliptical" feature: A bright core in the exact center
+    # We slice a 4x4 grid in the middle (pixels 14 to 18) and brighten them
+    ellipticals_X[:, 0, 14:18, 14:18] += 2.0
     ellipticals_y = torch.ones(100, dtype=torch.long)  # Label 1 = elliptical
 
     # Combine them
-    X = torch.cat((spirals_X, ellipticals_x), dim=0).to(cuda_device)
+    X = torch.cat((spirals_X, ellipticals_X), dim=0).to(cuda_device)
     y = torch.cat((spirals_y, ellipticals_y), dim=0).to(cuda_device)
+
 
     print(f"Dataset ready: {X.shape[0]} galaxies.")
 
     print("\n--- 2. INITIALIZING MODEL ---")
-    model = GalaxyClassifier().to(cuda_device)
+    model = GalaxyCNN().to(cuda_device)
 
     # The Loss Function (How wrong are we?)
     criterion = nn.CrossEntropyLoss()
@@ -61,7 +71,10 @@ def main():
     print("\n--- 4. TRAINING COMPLETE ---")
 
     # Let's test it on a brand new "Spiral" galaxy
-    new_galaxy = torch.tensor([[2.5, 2.1, 0.5]]).to(cuda_device)
+    new_galaxy = torch.randn(1, 1, 32, 32).to(cuda_device)
+    # for i in range(32):
+    #     new_galaxy[:, 0, i, i] += 2.0
+
     raw_prediction = model(new_galaxy).to(cuda_device)
     probabilities = F.softmax(raw_prediction, dim=1)
     print(f"\nRaw prediction: {raw_prediction}, Probabilities: {probabilities}")
@@ -71,6 +84,12 @@ def main():
 
     class_names = ["Spiral", "Elliptical"]
     print(f"Test Galaxy Prediction: {class_names[predicted_class]}")
+
+    print("\n--- 5. SAVING THE MODEL ---")
+    # .pt or .pth is the standard file extension for PyTorch models
+    torch.save(model.state_dict(), "galaxy_cnn.pt")
+    print("Model weights saved to 'galaxy_cnn.pt'")
+
 
 if __name__ == "__main__":
     main()
